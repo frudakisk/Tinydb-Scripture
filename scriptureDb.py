@@ -30,6 +30,16 @@ s = Scripture("John 3:16", "John", 3, 16, "For God so loved the world, that he g
 #Insert scripture into the database
 #make sure it is not already there
 def InsertScripture(s: Scripture) -> bool:
+    """Insert scripture into the database and
+    makes sure that it is not already in the database
+
+    Args:
+        s (Scripture): of type Scripture and is just some
+        information about a certain verse
+
+    Returns:
+        bool: returns true if we can add it to database, false if it cant
+    """
     scripture = Query()
     if len(db.search(scripture.reference == s.reference)) <= 0:
         db.insert(s.__dict__)
@@ -41,6 +51,15 @@ def InsertScripture(s: Scripture) -> bool:
 #Cuts reference into its three parts: Book name, chapter number, verse number
 #returns a list of these items in the respective order
 def SpliceScripture(reference: str) -> list:
+    """Cuts reference into its three parts: Book name, chapter number,
+    and verse number. Returns a list of these items in the respective order
+
+    Args:
+        reference (str): A string that represents a scripture reference like John 3:16
+
+    Returns:
+        list: A list that contains the book name, chapter number, and verse number
+    """
     #expecting something like 'John 3:16'
     items = reference.split(' ')
     temp = items[1].split(":")
@@ -49,9 +68,33 @@ def SpliceScripture(reference: str) -> list:
 
 #Replaces <br> tags with newlines, and all other html tags with ''
 def RemoveHtmlTags(text:str) -> str:
+    """Replaces <br> tags with newlines, and all other html tags with ''
+
+    Args:
+        text (str): text to clean. usually a verse
+
+    Returns:
+        str: the cleaned up version of the verse
+    """
     clean = re.sub(r'<br.*?>', '\n', text)
     clean = re.sub(r'<.*?>', '', clean)
     return clean
+
+def CreateAPIVerse(translation: str, bookId: int, scriptureItems: list) -> dict:
+    """_summary_
+
+    Args:
+        translation (str): _description_
+        bookId (int): _description_
+        scriptureItems (list): _description_
+
+    Returns:
+        dict: _description_
+    """
+    url = f"https://bolls.life/get-verse/{translation}/{bookId}/{scriptureItems[1]}/{scriptureItems[2]}/"
+    response = requests.get(url)
+    apiData = response.json()
+    return apiData
 
 
 isOn = True
@@ -88,18 +131,17 @@ while(isOn):
                 print(item)
                 bookId = item['bookid']
                 print(f"bookId is {bookId}")
-    except:
-        print("Translation does not exist")
+
+        if bookId == None:
+            raise Exception(f"Could not find book {scriptureItems[0]} in current {translation} translation")
+    except Exception as ex:
+        print(f"Translation does not exist: {ex}")
         continue
 
     
 
     #2. insert into url
-    url = f"https://bolls.life/get-verse/{translation}/{bookId}/{scriptureItems[1]}/{scriptureItems[2]}/"
-    response = requests.get(url)
-    apiData = response.json()
-    print("data incoming!!!")
-    print(apiData)
+    apiData = CreateAPIVerse(translation, bookId, scriptureItems)
 
     #3. Grab the text from the url and clean it of html poison
     verse = RemoveHtmlTags(apiData['text'])
@@ -108,3 +150,5 @@ while(isOn):
     #4. Create Scripture object and try to insert to JSON file
     newScripture = Scripture(reference, scriptureItems[0], scriptureItems[1], scriptureItems[2], verse, translation)
     myBool = InsertScripture(newScripture)
+
+
