@@ -263,20 +263,35 @@ def IsReferenceRealInTranslation(data: dict, scriptureItems: list, translation: 
     failureResponse = ""
     myBool = True
 
-    if not IsTranslationReal(data, translation):
+    isTranslationReal = IsTranslationReal(data, translation)
+    isBookReal = IsBookReal(data, scriptureItems, translation)
+    isChapterReal = IsChapterReal(data, scriptureItems, translation)
+    isVerseReal = IsVerseReal(data, scriptureItems, translation)
+
+    if not isTranslationReal:
         failureResponse += f"Translation {translation} is not real or not supported\n"
         myBool = False
 
-    if not IsBookReal(data, scriptureItems, translation):
+    if not isBookReal:
         failureResponse += f"Book name {scriptureItems[0]} is not real in reference '{reference}'\n"
         myBool = False
 
-    if not IsChapterReal(data, scriptureItems, translation):
-        failureResponse += f"Chapter {scriptureItems[1]} is not real in reference '{reference}'\n"
+    if not isChapterReal:
+        failureResponse += f"Chapter {scriptureItems[1]} is not real in reference '{reference}'."
+        if  not isBookReal:
+            failureResponse += f" Make sure book name is correct\n"
+        else:
+            failureResponse += "\n"
         myBool = False
 
-    if not IsVerseReal(data, scriptureItems, translation):
-        failureResponse += f"Verse {scriptureItems[2]} is not real in reference '{reference}'\n"
+    if not isVerseReal:
+        failureResponse += f"Verse {scriptureItems[2]} is not real in reference '{reference}'."
+        if not isChapterReal and not isBookReal:
+            failureResponse += f" Make sure book name and/or chapter number are correct\n"
+        elif not isChapterReal and isBookReal:
+            failureResponse += f" Make sure chapter number is correct\n"
+        else:
+            failureResponse += "\n"
         myBool = False
 
     if myBool:
