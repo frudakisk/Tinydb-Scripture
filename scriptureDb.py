@@ -52,6 +52,7 @@ def InsertScripture(s: Scripture) -> bool:
     scripture = Query()
     if len(db.search(scripture.reference == s.reference)) <= 0:
         db.insert(s.__dict__)
+        print(f"Scripture:\n{s.text}\nhas been added to the database")
         return True
     else:
         print("this scripture already exist in our database")
@@ -73,7 +74,7 @@ def SpliceScripture(reference: str) -> list:
     #expecting something like 'John 3:16'
     items = reference.split(' ')
     temp = items[1].split(":")
-    items = [items[0], temp[0], temp[1]]
+    items = [items[0], int(temp[0]),int(temp[1])]
     return items
 
 
@@ -167,10 +168,10 @@ def IsChapterReal(data: dict, scriptureItems: list, translation: str) -> bool:
         translation (str): translation user wants verse in
 
     Returns:
-        bool: returns True if chapter is real, false otherwise
+        bool: returns True if chapter is real (depends on if the translation is real), false otherwise
     """
     bookName = scriptureItems[0]
-    chapterNumber = int(scriptureItems[1])
+    chapterNumber = scriptureItems[1]
 
     for item in data[translation]:
         if bookName == item['name']:
@@ -181,10 +182,85 @@ def IsChapterReal(data: dict, scriptureItems: list, translation: str) -> bool:
     return False
 
 
-def IsVerseReal(scriptureItems: list, translation: str) -> bool:
+def IsVerseReal(data: dict, scriptureItems: list, translation: str) -> bool:
+    """Checks if the verse number of the scripture reference is real
+
+    Args:
+        data (dict): a JSON format dictonary that contains bible translations and books in that translation
+        scriptureItems (list): A scripture reference split up by book name, chapter number, and verse number
+        translation (str): translation user wants verse in
+
+    Returns:
+        bool: returns True if verse is real (also depends on if the Book and Chapter are real), false otherwise
+    """
+    #make a book id
+    bookId = GetBookId(data, scriptureItems, translation)
+    
+    if bookId == -1:
+        print(f"Could not find book {scriptureItems[0]} in current {translation} translation while checking for verse")
+        return False
+    
     url = f"https://bolls.life/get-text/{translation}/{bookId}/{scriptureItems[1]}/"
+    #create json from url
+    response = requests.get(url)
+    #check if info was found
+    if response.status_code == 404:
+        print(f"Data for reference {scriptureItems} could not be found")
+        return False
+    chapterData = response.json()
+    #now we check if the verse number is an item in this chapterData
+    for item in chapterData:
+        if scriptureItems[2] == item['verse']:
+            return True
+        
+    return False
 
+def GetBookId(data: dict, scriptureItems: list, translation: str) -> int:
+    """Given a book name, we get the book id in the current translation
 
+    Args:
+        data (dict): a JSON format dictonary that contains bible translations and books in that translation
+        scriptureItems (list): A scripture reference split up by book name, chapter number, and verse number
+        translation (str): translation user wants verse in
+
+    Returns:
+        int: the id of the book, or -1 if we cannot find the book
+    """
+    bookName = scriptureItems[0]
+    for item in data[translation]: #we should be checking if this translation is even real FIRST
+        if bookName == item['name']:
+            return item['bookid']
+    return -1
+
+def IsReferenceRealInTranslation(data: dict, scriptureItems: list, translation: str) -> bool:
+    """Takes into account every item in a scripture reference and makes sure that the
+    reference does exist within the translation the user selected
+
+    Args:
+        data (dict): a JSON format dictonary that contains bible translations and books in that translation
+        scriptureItems (list): A scripture reference split up by book name, chapter number, and verse number
+        translation (str): translation user wants verse in
+
+    Returns:
+        bool: True if the scripture is real, False otherwise
+    """
+    if IsTranslationReal(data, translation):
+        if IsBookReal(data, scriptureItems, translation):
+            if IsChapterReal(data, scriptureItems, translation):
+                if IsVerseReal(data, scriptureItems, translation):
+                    return True
+                else:
+                    print(f"Verse {scriptureItems[2]} is not real in reference '{reference}'")
+                    return False
+            else:
+                print(f"Chapter {scriptureItems[1]} is not real in reference '{reference}'")
+                return False
+        else:
+            print(f"Book name {scriptureItems[0]} is not real in reference '{reference}'")
+            return False
+    else:
+        print(f"Translation {translation} is not real or not supported")
+        return False
 
 
 isOn = True
@@ -199,41 +275,21 @@ while(isOn):
 
     translation = input("Translation: ")
 
-
-
     #format reference
     reference = reference.capitalize().strip()
     #parse input to grab book name, chapter num and verse num
     scriptureItems = SpliceScripture(reference)
     #format translation
     translation = translation.upper().strip()
-
-    print("Checking Chapter\n")
-    print(IsChapterReal(data, scriptureItems, translation))
-
-        #check if reference is even real by book, chapter, verse in that order
-    if IsBookReal(scriptureItems, translation) and IsChapterReal(bookName) and IsVerseReal():
-        pass
-
-    booksInTranslation = None
-    bookId = None
-    #1. convert book name to bookid - Need translation first
-    try:
-        booksInTranslation = data[translation] #check if translation is a real one
-        #find bookid in this translation
-        for item in booksInTranslation:
-            if(item['name'] == scriptureItems[0]):
-                print(item)
-                bookId = item['bookid']
-                print(f"bookId is {bookId}")
-
-        if bookId == None:
-            raise Exception(f"Could not find book {scriptureItems[0]} in current {translation} translation")
-    except Exception as ex:
-        print(f"Translation does not exist: {ex}")
-        continue
-
     
+    #check if the book is real. If it is real, check if chapter is real. If it is real, check if the verse is real
+    #if any of these are not real, than stop the process 
+    #1. Check if the reference is real in the current translation
+    bookId = None
+    if not IsReferenceRealInTranslation(data, scriptureItems, translation):
+        continue
+    else:
+        bookId = GetBookId(data, scriptureItems, translation)
 
     #2. insert into url
     apiData = CreateAPIVerse(translation, bookId, scriptureItems)
