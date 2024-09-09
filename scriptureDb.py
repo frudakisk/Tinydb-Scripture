@@ -248,7 +248,7 @@ def GetBookId(data: dict, scriptureItems: list, translation: str) -> int:
     except:
         return -1
 
-def IsReferenceRealInTranslation(data: dict, scriptureItems: list, translation: str) -> bool:
+def IsReferenceRealInTranslation(data: dict, scriptureItems: list, translation: str, reference: str) -> bool:
     """Takes into account every item in a scripture reference and makes sure that the
     reference does exist within the translation the user selected
 
@@ -299,44 +299,67 @@ def IsReferenceRealInTranslation(data: dict, scriptureItems: list, translation: 
     else:
         print(failureResponse)
         return False
-
-isOn = True
-data = GetTranslationBookData()
-while(isOn):
-    print("enter 'done' to end process")
-    reference = input("Reference: ")
-
-    if reference.lower().strip() == 'done':
-        isOn = False
-        break
-
-    translation = input("Translation: ")
-
-    #format reference
-    reference = reference.capitalize().strip()
-    #parse input to grab book name, chapter num and verse num
-    scriptureItems = SpliceScripture(reference)
-    #format translation
-    translation = translation.upper().strip()
     
-    #check if the book is real. If it is real, check if chapter is real. If it is real, check if the verse is real
-    #if any of these are not real, than stop the process 
-    #1. Check if the reference is real in the current translation
-    bookId = None
-    if not IsReferenceRealInTranslation(data, scriptureItems, translation):
-        continue
-    else:
-        bookId = GetBookId(data, scriptureItems, translation)
+def AddLoop():
+    isOn = True
+    data = GetTranslationBookData()
+    while(isOn):
+        print("enter 'done' to end process")
+        reference = input("Reference: ")
 
-    #2. insert into url
-    apiData = CreateAPIVerse(translation, bookId, scriptureItems)
+        if reference.lower().strip() == 'done':
+            isOn = False
+            break
 
-    #3. Grab the text from the url and clean it of html poison
-    verse = RemoveHtmlTags(apiData['text'])
-    print(verse)
+        translation = input("Translation: ")
 
-    #4. Create Scripture object and try to insert to JSON file
-    newScripture = Scripture(reference, scriptureItems[0], scriptureItems[1], scriptureItems[2], verse, translation)
-    myBool = InsertScripture(newScripture)
+        #format reference
+        reference = reference.capitalize().strip()
+        #parse input to grab book name, chapter num and verse num
+        scriptureItems = SpliceScripture(reference)
+        #format translation
+        translation = translation.upper().strip()
+        
+        #check if the book is real. If it is real, check if chapter is real. If it is real, check if the verse is real
+        #if any of these are not real, than stop the process 
+        #1. Check if the reference is real in the current translation
+        bookId = None
+        if not IsReferenceRealInTranslation(data, scriptureItems, translation, reference):
+            continue
+        else:
+            bookId = GetBookId(data, scriptureItems, translation)
+
+        #2. insert into url
+        apiData = CreateAPIVerse(translation, bookId, scriptureItems)
+
+        #3. Grab the text from the url and clean it of html poison
+        verse = RemoveHtmlTags(apiData['text'])
+        print(verse)
+
+        #4. Create Scripture object and try to insert to JSON file
+        newScripture = Scripture(reference, scriptureItems[0], scriptureItems[1], scriptureItems[2], verse, translation)
+        myBool = InsertScripture(newScripture)
+
+def main():
+    while(True):
+        answer = input("What would you like to do? ")
+        answer = answer.lower().strip()
+
+        match answer:
+            case 'done':
+                break
+            case 'add':
+                AddLoop()
+            case 'delete':
+                pass
+            case 'quiz':
+                pass
+            case _:
+                print("not real answer")
+
+if __name__ == "__main__":
+    main()
+
+
 
 
