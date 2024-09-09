@@ -51,11 +51,17 @@ def InsertScripture(s: Scripture) -> bool:
     """
     scripture = Query()
     if len(db.search(scripture.reference == s.reference)) <= 0:
-        db.insert(s.__dict__)
-        print(f"Scripture:\n{s.text}\nhas been added to the database")
-        return True
+        print(f"Scripture is:\n{s.text}\nAre you sure you want to add this scripture? (Y/N)")
+        decision = input()
+        if decision.upper().strip() == 'Y':   
+            db.insert(s.__dict__)
+            print("Scripture has been added to the database")
+            return True
+        else:
+            print("Scripture was not added to the database")
+            False
     else:
-        print("this scripture already exist in our database")
+        print("This scripture already exist in our database")
         return False
     
 

@@ -23,6 +23,14 @@
             "verse": 17,
             "text": "And whatever you do or say, do it as a representative of the Lord Jesus, giving thanks through him to God the Father.",
             "translation": "NLT"
+        },
+        "4": {
+            "reference": "Ephesians 5:25",
+            "bookName": "Ephesians",
+            "chapter": 5,
+            "verse": 25,
+            "text": "Husbands, love your wives, just as Christ loved the church and gave himself up for her",
+            "translation": "NIV"
         }
     }
 }
