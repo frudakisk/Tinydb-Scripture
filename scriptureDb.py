@@ -155,14 +155,18 @@ def IsBookReal(data: dict, scriptureItems: list, translation: str) -> bool:
     Returns:
         bool: returns True if book is in translation, false otherwise
     """
-    #check if the book name is even a real one within the translation
-    bookName = scriptureItems[0]
+    #try to find book. If for whatever reason we cant find it (translation not real), just return false
+    try:
+        #check if the book name is even a real one within the translation
+        bookName = scriptureItems[0]
 
-    for item in data[translation]: #we should be checking if this translation is even real FIRST
-        if bookName == item['name']:
-            return True
-        
-    return False
+        for item in data[translation]: #Translation might not be real
+            if bookName == item['name']:
+                return True
+            
+        return False
+    except:
+        return False
 
 
 def IsChapterReal(data: dict, scriptureItems: list, translation: str) -> bool:
@@ -176,16 +180,20 @@ def IsChapterReal(data: dict, scriptureItems: list, translation: str) -> bool:
     Returns:
         bool: returns True if chapter is real (depends on if the translation is real), false otherwise
     """
-    bookName = scriptureItems[0]
-    chapterNumber = scriptureItems[1]
+    try:
+        bookName = scriptureItems[0]
+        chapterNumber = scriptureItems[1]
 
-    for item in data[translation]:
-        if bookName == item['name']:
-            maxChapters = item['chapters']
-            if chapterNumber <= maxChapters:
-                return True
-    
-    return False
+        for item in data[translation]: #translation might not be real
+            if bookName == item['name']:
+                maxChapters = item['chapters']
+                if chapterNumber <= maxChapters:
+                    return True
+        
+        return False
+    except:
+        return False
+
 
 
 def IsVerseReal(data: dict, scriptureItems: list, translation: str) -> bool:
@@ -203,7 +211,6 @@ def IsVerseReal(data: dict, scriptureItems: list, translation: str) -> bool:
     bookId = GetBookId(data, scriptureItems, translation)
     
     if bookId == -1:
-        print(f"Could not find book {scriptureItems[0]} in current {translation} translation while checking for verse")
         return False
     
     url = f"https://bolls.life/get-text/{translation}/{bookId}/{scriptureItems[1]}/"
@@ -232,11 +239,14 @@ def GetBookId(data: dict, scriptureItems: list, translation: str) -> int:
     Returns:
         int: the id of the book, or -1 if we cannot find the book
     """
-    bookName = scriptureItems[0]
-    for item in data[translation]: #we should be checking if this translation is even real FIRST
-        if bookName == item['name']:
-            return item['bookid']
-    return -1
+    try:
+        bookName = scriptureItems[0]
+        for item in data[translation]: #we should be checking if this translation is even real FIRST
+            if bookName == item['name']:
+                return item['bookid']
+        return -1
+    except:
+        return -1
 
 def IsReferenceRealInTranslation(data: dict, scriptureItems: list, translation: str) -> bool:
     """Takes into account every item in a scripture reference and makes sure that the
@@ -250,24 +260,30 @@ def IsReferenceRealInTranslation(data: dict, scriptureItems: list, translation: 
     Returns:
         bool: True if the scripture is real, False otherwise
     """
-    if IsTranslationReal(data, translation):
-        if IsBookReal(data, scriptureItems, translation):
-            if IsChapterReal(data, scriptureItems, translation):
-                if IsVerseReal(data, scriptureItems, translation):
-                    return True
-                else:
-                    print(f"Verse {scriptureItems[2]} is not real in reference '{reference}'")
-                    return False
-            else:
-                print(f"Chapter {scriptureItems[1]} is not real in reference '{reference}'")
-                return False
-        else:
-            print(f"Book name {scriptureItems[0]} is not real in reference '{reference}'")
-            return False
-    else:
-        print(f"Translation {translation} is not real or not supported")
-        return False
+    failureResponse = ""
+    myBool = True
 
+    if not IsTranslationReal(data, translation):
+        failureResponse += f"Translation {translation} is not real or not supported\n"
+        myBool = False
+
+    if not IsBookReal(data, scriptureItems, translation):
+        failureResponse += f"Book name {scriptureItems[0]} is not real in reference '{reference}'\n"
+        myBool = False
+
+    if not IsChapterReal(data, scriptureItems, translation):
+        failureResponse += f"Chapter {scriptureItems[1]} is not real in reference '{reference}'\n"
+        myBool = False
+
+    if not IsVerseReal(data, scriptureItems, translation):
+        failureResponse += f"Verse {scriptureItems[2]} is not real in reference '{reference}'\n"
+        myBool = False
+
+    if myBool:
+        return True
+    else:
+        print(failureResponse)
+        return False
 
 isOn = True
 data = GetTranslationBookData()
