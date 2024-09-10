@@ -98,6 +98,18 @@ def RemoveHtmlTags(text:str) -> str:
     clean = re.sub(r'<.*?>', '', clean)
     return clean
 
+def CleanReference(reference: str) -> str:
+    """Cleans the users reference by capatalizing the book name and
+    removing any whitespace outside of the text
+
+    Args:
+        reference (str): the reference the user input
+
+    Returns:
+        str: a cleaned version of the reference that is capitilized and no extra whitespce
+    """
+    cleanedReference = reference.capitalize().strip()
+    return cleanedReference
 
 def CreateAPIVerse(translation: str, bookId: int, scriptureItems: list) -> dict:
     """_summary_
@@ -316,7 +328,7 @@ def AddLoop():
         translation = input("Translation: ")
 
         #format reference
-        reference = reference.capitalize().strip()
+        reference = CleanReference(reference)
         #parse input to grab book name, chapter num and verse num
         scriptureItems = SpliceScripture(reference)
         #format translation
@@ -342,6 +354,27 @@ def AddLoop():
         newScripture = Scripture(reference, scriptureItems[0], scriptureItems[1], scriptureItems[2], verse, translation)
         myBool = InsertScripture(newScripture)
 
+def DeleteLoop():
+    """This loop will allow the user to delete whatever scripture they want from their database.
+    They will be able to delete only by inserting the correct reference
+    """
+    while True:
+        reference = input("Reference to delete: ")
+
+        if reference.lower().strip() == 'done':
+            break
+
+        reference = CleanReference(reference)
+
+        #look through tinyDB and check if reference exist in it
+        scripture = Query()
+        if db.contains(scripture.reference == reference):
+            #get id of reference - there should only be one
+            removed_ids = db.remove(scripture.reference == reference)
+            print(f"{removed_ids} has been removed")
+
+
+
 def main():
     """Main function that is to be run as the program. Should be clean.
     """
@@ -355,7 +388,7 @@ def main():
             case 'add':
                 AddLoop()
             case 'delete':
-                pass
+                DeleteLoop()
             case 'quiz':
                 pass
             case _:
