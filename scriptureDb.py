@@ -301,6 +301,8 @@ def IsReferenceRealInTranslation(data: dict, scriptureItems: list, translation: 
         return False
     
 def AddLoop():
+    """Looping process for adding scripture into the tinyDB
+    """
     isOn = True
     data = GetTranslationBookData()
     while(isOn):
@@ -341,6 +343,8 @@ def AddLoop():
         myBool = InsertScripture(newScripture)
 
 def main():
+    """Main function that is to be run as the program. Should be clean.
+    """
     while(True):
         answer = input("What would you like to do? ")
         answer = answer.lower().strip()
