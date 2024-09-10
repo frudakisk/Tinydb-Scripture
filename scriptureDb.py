@@ -14,10 +14,7 @@ import re
 
 '''
 TODO:
-Check if the book is real
-Check if the chapter number is real
-Check if the verse number is real
-Check if the translation is real
+string percentage matching
 '''
 
 translationsBook = "https://bolls.life/static/bolls/app/views/translations_books.json"
@@ -382,7 +379,106 @@ def ListScripture():
         print(f"{index}. {item["reference"]} - {item["text"]}\n\n")
         index += 1
 
+def StringPercentageMatch(inputString: str, scriptureString: str) -> float:
+    """We takes the users input of a string and match it to what we have in the database.
+    We are checking how close they got to having the scripture written down perfectly
 
+    Args:
+        inputString (str): user's inputted string
+        scriptureString (str): actual stricpture from the bible
+
+    Returns:
+        float: a float that represents the percentage of how close they were to writing down
+        the scripture correctly
+    """
+    #Case 1, they are exactly the same
+    if inputString == scriptureString:
+        print("perfect match!")
+        return 100.00
+    
+    correctCount = 0
+    inputStringList = inputString.split()
+    scriptureStringList = scriptureString.split()
+    print(inputStringList)
+    print(scriptureStringList)
+
+    for word in inputStringList:
+        if word in scriptureStringList:
+            #if found, word is spelt 100% the same
+            #check if it is in the correct spot, if it is, they got it correct
+            inputIndex = inputStringList.index(word)
+            scriptureIndex = scriptureStringList.index(word)
+            if(inputIndex == scriptureIndex):
+                print("word was exactly the same")
+                correctCount += 1
+            elif abs(inputIndex - scriptureIndex) <= 1:
+                print("The word was within one space difference of its suppose to be space. giving half a point")
+                correctCount += 0.5
+        else: #if the word is not found, see if we can find a similar word - maybe they mispelled the word but it's still in correct spot
+            #do loop for each word
+            
+            percentage = 0.00
+            inputIndex = None
+            scriptureIndex = None
+            for scriptureWord in scriptureStringList:
+                letterCorrect = 0
+                print(f"word in this context is {word}")
+                print(f"scripture word in this context is {scriptureWord}")
+                for i in range(len(scriptureWord)):
+                    #if word is bigger than scriptureWord, we need to doc off points per extra letter
+                    try:
+                        if word[i] == scriptureWord[i]:
+                            print("MATCH")
+                            letterCorrect += 1
+                    except:
+                        pass
+
+                #find bigger word because we need to know if we are missing a letter in percentage calculation
+                biggerWord = ""
+                if len(word) >= len(scriptureWord):
+                    biggerWord = word
+                else:
+                    biggerWord = scriptureWord
+
+
+                tempPercentage = letterCorrect / len(biggerWord) #length of the bigger word
+                print(f"tempPercentage: {tempPercentage}")
+                #if this percentage is higher than what we already have, grab the index of each word in their list
+                if tempPercentage > percentage:
+                    percentage = tempPercentage
+                    inputIndex = inputStringList.index(word)
+                    scriptureIndex = scriptureStringList.index(scriptureWord)
+                    print(f"Percentage has been changed to {tempPercentage}")
+                    #if they are at the same index, that is better than if they are not
+                    
+            #after finding the highest percetnage, see what their index is like
+            if(inputIndex == scriptureIndex):
+                correctCount += (percentage) #percent is always 1.0 or lower, so use this as how right we got the word in the correct place
+            elif abs(inputIndex - scriptureIndex) <= 1:
+                #if we are within one distance of where the word is suppose to be, give them half a point on top of how well they spelt the word
+                correctCount += 0.5 * percentage
+    
+    #now calculate overall percentage
+    percentage = correctCount / len(scriptureStringList)
+    print(f"percentage in decimal form: {percentage}\n correctCount: {correctCount}")
+    return percentage
+
+
+def FormatFloatToPercentage(floatPercentage: float) -> str:
+    """Formats a float into a percentage
+
+    Args:
+        floatPercentage (float): float version of percentage
+
+    Returns:
+        str: the float but as a percentage string representation of the float we input
+    """
+    return f"{floatPercentage:.2%}"
+
+
+
+#I want to quiz myself by being given the reference and I have to type out the verse. However, i want to account for slight errors
+#I want to have a percentage accuracy of how close i was to the original scripture
 
 def main():
     """Main function that is to be run as the program. Should be clean.
@@ -399,7 +495,7 @@ def main():
             case 'delete':
                 DeleteLoop()
             case 'quiz':
-                pass
+                StringPercentageMatch("Hello There  Stinky World!", "Hello World!") #83.3%
             case 'list':
                 ListScripture()
             case _:
