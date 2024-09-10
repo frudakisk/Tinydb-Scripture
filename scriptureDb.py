@@ -373,6 +373,15 @@ def DeleteLoop():
             removed_ids = db.remove(scripture.reference == reference)
             print(f"{removed_ids} has been removed")
 
+def ListScripture():
+    """Looks into database and list out all scripture in it
+    """
+    index = 1
+    table = db.all()
+    for item in table:
+        print(f"{index}. {item["reference"]} - {item["text"]}\n\n")
+        index += 1
+
 
 
 def main():
@@ -391,6 +400,8 @@ def main():
                 DeleteLoop()
             case 'quiz':
                 pass
+            case 'list':
+                ListScripture()
             case _:
                 print("not real answer")
 
