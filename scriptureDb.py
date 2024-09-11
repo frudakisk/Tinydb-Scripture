@@ -101,7 +101,7 @@ def RemoveHtmlTags(text:str) -> str:
     clean = re.sub(r'<br.*?>', '\n', text)
     clean = re.sub(r'<.*?>', '', clean)
     clean = clean.replace("\u2019", "'")
-    cleam = clean.replace("\u201c", '"')
+    clean = clean.replace("\u201c", '"')
     return clean
 
 def CleanReference(reference: str) -> str:
@@ -384,7 +384,7 @@ def ListScripture():
     index = 1
     table = db.all()
     for item in table:
-        print(f"{index}. {item["reference"]} - {item["text"]}\n\n")
+        print(f"{index}. {item["reference"]} | {item["translation"]} - {item["text"]}\n\n")
         index += 1
 
 def StringPercentageMatch(inputString: str, scriptureString: str) -> float:
@@ -442,8 +442,9 @@ def Quiz():
     #grab reference and request input for verse
     for scripture in scriptList:
         ref = scripture['reference']
+        translation = scripture['translation']
         text = scripture['text']
-        print(f"Write the scripture for verse {ref}")
+        print(f"Write the scripture for verse {ref} | {translation}")
         answer = input("Input Verse: ")
         versePercentage = StringPercentageMatch(answer, text)
         print(f"You are {FormatFloatToPercentage(versePercentage)} correct!")
