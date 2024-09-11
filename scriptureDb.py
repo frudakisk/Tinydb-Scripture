@@ -1,6 +1,7 @@
 from tinydb import TinyDB, Query
 import requests
 import re
+from difflib import SequenceMatcher
 
 #add scripture into database (DONE)
 #make sure scripture does not already exist in the database before adding it (DONE)
@@ -391,77 +392,8 @@ def StringPercentageMatch(inputString: str, scriptureString: str) -> float:
         float: a float that represents the percentage of how close they were to writing down
         the scripture correctly
     """
-    #Case 1, they are exactly the same
-    if inputString == scriptureString:
-        print("perfect match!")
-        return 100.00
+    return SequenceMatcher(None, inputString, scriptureString).ratio()
     
-    correctCount = 0
-    inputStringList = inputString.split()
-    scriptureStringList = scriptureString.split()
-    print(inputStringList)
-    print(scriptureStringList)
-
-    for word in inputStringList:
-        if word in scriptureStringList:
-            #if found, word is spelt 100% the same
-            #check if it is in the correct spot, if it is, they got it correct
-            inputIndex = inputStringList.index(word)
-            scriptureIndex = scriptureStringList.index(word)
-            if(inputIndex == scriptureIndex):
-                print("word was exactly the same")
-                correctCount += 1
-            elif abs(inputIndex - scriptureIndex) <= 1:
-                print("The word was within one space difference of its suppose to be space. giving half a point")
-                correctCount += 0.5
-        else: #if the word is not found, see if we can find a similar word - maybe they mispelled the word but it's still in correct spot
-            #do loop for each word
-            
-            percentage = 0.00
-            inputIndex = None
-            scriptureIndex = None
-            for scriptureWord in scriptureStringList:
-                letterCorrect = 0
-                print(f"word in this context is {word}")
-                print(f"scripture word in this context is {scriptureWord}")
-                for i in range(len(scriptureWord)):
-                    #if word is bigger than scriptureWord, we need to doc off points per extra letter
-                    try:
-                        if word[i] == scriptureWord[i]:
-                            print("MATCH")
-                            letterCorrect += 1
-                    except:
-                        pass
-
-                #find bigger word because we need to know if we are missing a letter in percentage calculation
-                biggerWord = ""
-                if len(word) >= len(scriptureWord):
-                    biggerWord = word
-                else:
-                    biggerWord = scriptureWord
-
-
-                tempPercentage = letterCorrect / len(biggerWord) #length of the bigger word
-                print(f"tempPercentage: {tempPercentage}")
-                #if this percentage is higher than what we already have, grab the index of each word in their list
-                if tempPercentage > percentage:
-                    percentage = tempPercentage
-                    inputIndex = inputStringList.index(word)
-                    scriptureIndex = scriptureStringList.index(scriptureWord)
-                    print(f"Percentage has been changed to {tempPercentage}")
-                    #if they are at the same index, that is better than if they are not
-                    
-            #after finding the highest percetnage, see what their index is like
-            if(inputIndex == scriptureIndex):
-                correctCount += (percentage) #percent is always 1.0 or lower, so use this as how right we got the word in the correct place
-            elif abs(inputIndex - scriptureIndex) <= 1:
-                #if we are within one distance of where the word is suppose to be, give them half a point on top of how well they spelt the word
-                correctCount += 0.5 * percentage
-    
-    #now calculate overall percentage
-    percentage = correctCount / len(scriptureStringList)
-    print(f"percentage in decimal form: {percentage}\n correctCount: {correctCount}")
-    return percentage
 
 
 def FormatFloatToPercentage(floatPercentage: float) -> str:
@@ -495,7 +427,8 @@ def main():
             case 'delete':
                 DeleteLoop()
             case 'quiz':
-                StringPercentageMatch("Hello There  Stinky World!", "Hello World!") #83.3%
+                percentage = StringPercentageMatch("Hello There  Stinky World!", "Hello World!")
+                print(FormatFloatToPercentage(percentage))
             case 'list':
                 ListScripture()
             case _:
