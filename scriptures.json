@@ -1,18 +1,10 @@
 {
     "_default": {
-        "1": {
-            "reference": "John 3:16",
-            "bookName": "John",
-            "chapter": "3",
-            "verse": "16",
-            "text": "\u201cFor God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.",
-            "translation": "NIV"
-        },
         "2": {
             "reference": "Matthew 10:39",
             "bookName": "Matthew",
-            "chapter": "10",
-            "verse": "39",
+            "chapter": 10,
+            "verse": 39,
             "text": "If you cling to your life, you will lose it; but if you give up your life for me, you will find it.",
             "translation": "NLT"
         },
@@ -21,8 +13,8 @@
             "bookName": "Colossians",
             "chapter": 3,
             "verse": 17,
-            "text": "And whatever you do or say, do it as a representative of the Lord Jesus, giving thanks through him to God the Father.",
-            "translation": "NLT"
+            "text": "And whatever you do, whether in word or deed, do it all in the name of the Lord Jesus, giving thanks to God the Father through him.",
+            "translation": "NIV"
         },
         "4": {
             "reference": "Ephesians 5:25",
@@ -39,6 +31,30 @@
             "verse": 2,
             "text": "A man who makes a vow to the LORD or makes a pledge under oath must never break it. He must do exactly what he said he would do.",
             "translation": "NLT"
+        },
+        "6": {
+            "reference": "Romans 7:24",
+            "bookName": "Romans",
+            "chapter": 7,
+            "verse": 24,
+            "text": "Oh, what a miserable person I am! Who will free me from this life that is dominated by sin and death?",
+            "translation": "NLT"
+        },
+        "7": {
+            "reference": "Galatians 3:19",
+            "bookName": "Galatians",
+            "chapter": 3,
+            "verse": 19,
+            "text": "Why, then, was the law given? It was given alongside the promise to show people their sins. But the law was designed to last only until the coming of the child who was promised. God gave his law through angels to Moses, who was the mediator between God and the people.",
+            "translation": "NLT"
+        },
+        "8": {
+            "reference": "John 3:16",
+            "bookName": "John",
+            "chapter": 3,
+            "verse": 16,
+            "text": "\u201cFor God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.",
+            "translation": "NIV"
         }
     }
 }

@@ -2,6 +2,7 @@ from tinydb import TinyDB, Query
 import requests
 import re
 from difflib import SequenceMatcher
+import random
 
 #add scripture into database (DONE)
 #make sure scripture does not already exist in the database before adding it (DONE)
@@ -77,6 +78,11 @@ def SpliceScripture(reference: str) -> list:
     """
     #expecting something like 'John 3:16'
     items = reference.split(' ')
+    if len(items) >= 3:
+        #for things like 2 Kings or 1 Corinthians
+        #join items[0] and items[1], then remove items[1]
+        items[0] = items[0] + ' ' + items[1]
+        items.pop(1)
     temp = items[1].split(":")
     items = [items[0], int(temp[0]),int(temp[1])]
     return items
@@ -94,6 +100,8 @@ def RemoveHtmlTags(text:str) -> str:
     """
     clean = re.sub(r'<br.*?>', '\n', text)
     clean = re.sub(r'<.*?>', '', clean)
+    clean = clean.replace("\u2019", "'")
+    cleam = clean.replace("\u201c", '"')
     return clean
 
 def CleanReference(reference: str) -> str:
@@ -106,7 +114,7 @@ def CleanReference(reference: str) -> str:
     Returns:
         str: a cleaned version of the reference that is capitilized and no extra whitespce
     """
-    cleanedReference = reference.capitalize().strip()
+    cleanedReference = reference.title().strip()
     return cleanedReference
 
 def CreateAPIVerse(translation: str, bookId: int, scriptureItems: list) -> dict:
@@ -346,7 +354,6 @@ def AddLoop():
 
         #3. Grab the text from the url and clean it of html poison
         verse = RemoveHtmlTags(apiData['text'])
-        print(verse)
 
         #4. Create Scripture object and try to insert to JSON file
         newScripture = Scripture(reference, scriptureItems[0], scriptureItems[1], scriptureItems[2], verse, translation)
@@ -395,7 +402,6 @@ def StringPercentageMatch(inputString: str, scriptureString: str) -> float:
     return SequenceMatcher(None, inputString, scriptureString).ratio()
     
 
-
 def FormatFloatToPercentage(floatPercentage: float) -> str:
     """Formats a float into a percentage
 
@@ -406,6 +412,82 @@ def FormatFloatToPercentage(floatPercentage: float) -> str:
         str: the float but as a percentage string representation of the float we input
     """
     return f"{floatPercentage:.2%}"
+
+
+def GetRandomDBVerse() -> dict:
+    """Retrieves a random item from the JSON library
+
+    Returns:
+        dict: JSON object that represents scripture
+    """
+    maxNum = db.__len__()
+    randIndex = random.randint(1, maxNum)
+    doc = db.get(doc_id=randIndex)
+    return doc
+
+def Quiz():
+    #keep track of percentage from each question
+    #10 question quiz? might not be 10 items to be tested on
+    #continuous quiz until the user says they are done?
+    #Timed quiz?
+    #pick a percentage of items based on how many verses we have stored in DB - max amount of questions is 10 but can be less
+
+    #just do 10 question quiz and if we have less than 10 verses, we can just quiz them on all the scripture they saved.
+    #if they have more than 10 verses saved, we randomly pick 10 and store in a set so we dont have repeating ones
+
+    #return a JSON dict that contains the scriptures that will be tested in, but they are not presented as a test
+    scriptList = GetScriptureForQuiz()
+    #make a list to hold accuracy of each question
+    percentages = []
+    #grab reference and request input for verse
+    for scripture in scriptList:
+        ref = scripture['reference']
+        text = scripture['text']
+        print(f"Write the scripture for verse {ref}")
+        answer = input("Input Verse: ")
+        versePercentage = StringPercentageMatch(answer, text)
+        print(f"You are {FormatFloatToPercentage(versePercentage)} correct!")
+        percentages.append(versePercentage)
+    #when done, give a grade
+    grade = sum(percentages) / len(scriptList)
+    grade = FormatFloatToPercentage(grade)
+    return grade
+
+
+def GetScriptureForQuiz() -> list[dict]:
+    """Provides a list of the JSON scripture that will be used for a quiz
+
+    Returns:
+        list[dict]: A list that contains dictionaries that contain scripture information from
+        our tinyDB
+    """
+    dbList = db.all()
+    maxScriptureNum = len(db)
+    intSet = set()
+    if maxScriptureNum <= 10:
+        #return all scripture
+        print(f"Dont have 10 verses, outputting {maxScriptureNum} verses")
+        return dbList
+    else:
+        print(f"we have more than 10 verses, creating random quiz list")
+        #start selecting scripture - need a set
+        quizNum = 10
+        for i in range(quizNum):
+            randInt = random.randint(0, maxScriptureNum-1)
+            if randInt not in intSet:
+                intSet.add(randInt)
+            else:
+                i -= 1 #try loop again till we get a new number
+
+        #now we have indexes of scripture, let's add those JSON dicts into a list and return it
+        quizList = []
+        for num in intSet:
+            quizList.append(dbList[num])
+
+        return quizList
+
+
+    
 
 
 
@@ -427,8 +509,8 @@ def main():
             case 'delete':
                 DeleteLoop()
             case 'quiz':
-                percentage = StringPercentageMatch("Hello There  Stinky World!", "Hello World!")
-                print(FormatFloatToPercentage(percentage))
+                grade = Quiz()
+                print(f"Grade: {grade}")
             case 'list':
                 ListScripture()
             case _:
