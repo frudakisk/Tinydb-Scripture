@@ -55,6 +55,38 @@
             "verse": 16,
             "text": "\"For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.",
             "translation": "NIV"
+        },
+        "9": {
+            "reference": "Galatians 5:24",
+            "bookName": "Galatians",
+            "chapter": 5,
+            "verse": 24,
+            "text": "Those who belong to Christ Jesus have nailed the passions and desires of their sinful nature to his cross and crucified them there.",
+            "translation": "NLT"
+        },
+        "10": {
+            "reference": "Philippians 4:6",
+            "bookName": "Philippians",
+            "chapter": 4,
+            "verse": 6,
+            "text": "Don't worry about anything; instead, pray about everything. Tell God what you need, and thank him for all he has done.",
+            "translation": "NLT"
+        },
+        "11": {
+            "reference": "John 3:3",
+            "bookName": "John",
+            "chapter": 3,
+            "verse": 3,
+            "text": "In reply Jesus declared, \"I tell you the truth, no one can see the kingdom of God unless he is born again.\"",
+            "translation": "NIV"
+        },
+        "12": {
+            "reference": "John 4:14",
+            "bookName": "John",
+            "chapter": 4,
+            "verse": 14,
+            "text": "but whoever drinks the water I give him will never thirst. Indeed, the water I give him will become in him a spring of water welling up to eternal life.\"",
+            "translation": "NIV"
         }
     }
 }

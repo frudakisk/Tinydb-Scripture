@@ -102,6 +102,7 @@ def RemoveHtmlTags(text:str) -> str:
     clean = re.sub(r'<.*?>', '', clean)
     clean = clean.replace("\u2019", "'")
     clean = clean.replace("\u201c", '"')
+    clean = clean.replace("\u201d" , '"')
     return clean
 
 def CleanReference(reference: str) -> str:
@@ -487,8 +488,10 @@ def GetScriptureForQuiz() -> list[dict]:
 
         return quizList
 
-
-    
+def SearchLoop():
+    """Look up any verse in any translation and have it printed back out to them
+    """
+    pass
 
 
 
@@ -514,6 +517,8 @@ def main():
                 print(f"Grade: {grade}")
             case 'list':
                 ListScripture()
+            case 'search':
+                SearchLoop()
             case _:
                 print("not real answer")
 
