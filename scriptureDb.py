@@ -385,7 +385,7 @@ def ListScripture():
     index = 1
     table = db.all()
     for item in table:
-        print(f"{index}. {item["reference"]} | {item["translation"]} - {item["text"]}\n\n")
+        print(f"{index}. {item['reference']} | {item['translation']} - {item['text']}\n\n")
         index += 1
 
 def StringPercentageMatch(inputString: str, scriptureString: str) -> float:
@@ -491,7 +491,36 @@ def GetScriptureForQuiz() -> list[dict]:
 def SearchLoop():
     """Look up any verse in any translation and have it printed back out to them
     """
-    pass
+    data = GetTranslationBookData()
+    while True:
+        print("enter 'done' to end process")
+        reference = input("Reference: ")
+
+        if reference.lower().strip() == 'done':
+            isOn = False
+            break
+
+        translation = input("Translation: ")
+
+        #format reference
+        reference = CleanReference(reference)
+        #parse input to grab book name, chapter num and verse num
+        scriptureItems = SpliceScripture(reference)
+        #format translation
+        translation = translation.upper().strip()
+        
+        #1. Check if the reference is real in the current translation
+        bookId = None
+        if not IsReferenceRealInTranslation(data, scriptureItems, translation, reference):
+            continue
+        else:
+            bookId = GetBookId(data, scriptureItems, translation)
+
+        #2. insert into url
+        apiData = CreateAPIVerse(translation, bookId, scriptureItems)
+
+        #3. Print out verse if it exists
+        print(apiData['text'])
 
 
 
