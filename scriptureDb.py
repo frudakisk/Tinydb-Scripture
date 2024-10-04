@@ -119,15 +119,17 @@ def CleanReference(reference: str) -> str:
     return cleanedReference
 
 def CreateAPIVerse(translation: str, bookId: int, scriptureItems: list) -> dict:
-    """_summary_
+    """Request a verse from our API using the translation, book id, and verse information
+    and returns a json of that verse
 
     Args:
-        translation (str): _description_
-        bookId (int): _description_
-        scriptureItems (list): _description_
+        translation (str): The translation we use to find the verse
+        bookId (int): and ID that represents the name of a book in the bible in the current
+        translation
+        scriptureItems (list): contains verse number information
 
     Returns:
-        dict: _description_
+        dict: a dict in JSON format that contains info about the requested verse
     """
     url = f"https://bolls.life/get-verse/{translation}/{bookId}/{scriptureItems[1]}/{scriptureItems[2]}/"
     response = requests.get(url)
@@ -161,6 +163,33 @@ def IsTranslationReal(data: dict, translation: str) -> bool:
     else:
         return False
 
+def GetLikelyBookID(data: dict, scriptureItems: list) -> int:
+    """This function is to be used when we cannot find the input bookName in the
+    translation that the user requested. So, we take the input bookName and try
+    to find it in the WEB translation. we are returned a bookid if we can find 
+    a close match, otherwise we are returned -1.
+
+    Args:
+        data (dict): a JSON format dictonary that contains bible translations and books in that translation
+        scriptureItems (list): A scripture reference split up by book name, chapter number, and verse number
+
+    Returns:
+        int: _description_
+    """
+    #try to find book. If for whatever reason we cant find it (translation not real), just return false
+    try:
+        #check if the book name is even a real one within the translation
+        bookName = scriptureItems[0]
+            
+        #if we haven't found a match, maybe we are in a translation with long book names
+        #compare bookName to the book names in WEB to see if it's there
+        for item in data['WEB']:
+            if bookName == item['name']:
+                return item['bookid']
+            
+        return -1
+    except:
+        return -1
 
 def IsBookReal(data: dict, scriptureItems: list, translation: str) -> bool:
     """Checks if the book name is a real book in the current decided translation.
@@ -180,6 +209,12 @@ def IsBookReal(data: dict, scriptureItems: list, translation: str) -> bool:
         bookName = scriptureItems[0]
 
         for item in data[translation]: #Translation might not be real
+            if bookName == item['name']:
+                return True
+            
+        #if we haven't found a match, maybe we are in a translation with long book names
+        #compare bookName to the book names in WEB to see if it's there
+        for item in data['WEB']:
             if bookName == item['name']:
                 return True
             
@@ -204,6 +239,12 @@ def IsChapterReal(data: dict, scriptureItems: list, translation: str) -> bool:
         chapterNumber = scriptureItems[1]
 
         for item in data[translation]: #translation might not be real
+            if bookName == item['name']: #user bookName might not be suitable for current translation
+                maxChapters = item['chapters']
+                if chapterNumber <= maxChapters:
+                    return True
+                
+        for item in data['WEB']:
             if bookName == item['name']:
                 maxChapters = item['chapters']
                 if chapterNumber <= maxChapters:
@@ -248,7 +289,8 @@ def IsVerseReal(data: dict, scriptureItems: list, translation: str) -> bool:
     return False
 
 def GetBookId(data: dict, scriptureItems: list, translation: str) -> int:
-    """Given a book name, we get the book id in the current translation
+    """Given a book name, we get the book id in the current translation. Or we
+    give a likely book id
 
     Args:
         data (dict): a JSON format dictonary that contains bible translations and books in that translation
@@ -259,11 +301,11 @@ def GetBookId(data: dict, scriptureItems: list, translation: str) -> int:
         int: the id of the book, or -1 if we cannot find the book
     """
     try:
-        bookName = scriptureItems[0]
+        bookName = scriptureItems[0] #this is the bookName the user input, might not be correct book name for translation
         for item in data[translation]: #we should be checking if this translation is even real FIRST
             if bookName == item['name']:
                 return item['bookid']
-        return -1
+        return GetLikelyBookID(data, scriptureItems)
     except:
         return -1
 
@@ -346,6 +388,8 @@ def AddLoop():
         #1. Check if the reference is real in the current translation
         bookId = None
         if not IsReferenceRealInTranslation(data, scriptureItems, translation, reference):
+            temp = GetBookId(data, scriptureItems, translation)
+            print(f"The book id of {scriptureItems[0]} is {temp}") #returns -1
             continue
         else:
             bookId = GetBookId(data, scriptureItems, translation)
