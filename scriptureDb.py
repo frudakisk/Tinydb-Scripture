@@ -16,7 +16,7 @@ import random
 
 '''
 TODO:
-string percentage matching
+
 '''
 
 translationsBook = "https://bolls.life/static/bolls/app/views/translations_books.json"
@@ -565,38 +565,6 @@ def SearchLoop():
 
         #3. Print out verse if it exists
         print(apiData['text'])
-
-
-
-#I want to quiz myself by being given the reference and I have to type out the verse. However, i want to account for slight errors
-#I want to have a percentage accuracy of how close i was to the original scripture
-
-def main():
-    """Main function that is to be run as the program. Should be clean.
-    """
-    while(True):
-        answer = input("What would you like to do? ")
-        answer = answer.lower().strip()
-
-        match answer:
-            case 'done':
-                break
-            case 'add':
-                AddLoop()
-            case 'delete':
-                DeleteLoop()
-            case 'quiz':
-                grade = Quiz()
-                print(f"Grade: {grade}")
-            case 'list':
-                ListScripture()
-            case 'search':
-                SearchLoop()
-            case _:
-                print("not real answer")
-
-if __name__ == "__main__":
-    main()
 
 
 
