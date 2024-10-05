@@ -3,6 +3,7 @@ import requests
 import re
 from difflib import SequenceMatcher
 import random
+import tkinter as tk
 
 #add scripture into database (DONE)
 #make sure scripture does not already exist in the database before adding it (DONE)
@@ -29,6 +30,9 @@ class Scripture:
         self.verse = verse
         self.text = text
         self.translation = translation
+        
+    def __str__ (self):
+        return f"{self.reference} | {self.translation} - {self.text}"
 
 
 #init a database and store is as a JSON file
@@ -63,6 +67,12 @@ def InsertScripture(s: Scripture) -> bool:
         print("This scripture already exist in our database")
         return False
     
+def InsertScriptureGUI(s: Scripture):
+    scripture = Query()
+    if len(db.search(scripture.reference == s.reference)) <= 0: 
+        db.insert(s.__dict__)
+    else:
+        print("This scripture already exist in our database")
 
 #Cuts reference into its three parts: Book name, chapter number, verse number
 #returns a list of these items in the respective order
@@ -403,6 +413,36 @@ def AddLoop():
         #4. Create Scripture object and try to insert to JSON file
         newScripture = Scripture(reference, scriptureItems[0], scriptureItems[1], scriptureItems[2], verse, translation)
         myBool = InsertScripture(newScripture)
+
+def FindScripture(reference: str, translation: str) -> Scripture:
+    data = GetTranslationBookData()
+
+    #format reference
+    reference = CleanReference(reference)
+    #parse input to grab book name, chapter num and verse num
+    scriptureItems = SpliceScripture(reference)
+    #format translation
+    translation = translation.upper().strip()
+    
+    #check if the book is real. If it is real, check if chapter is real. If it is real, check if the verse is real
+    #if any of these are not real, than stop the process 
+    #1. Check if the reference is real in the current translation
+    bookId = None
+    if not IsReferenceRealInTranslation(data, scriptureItems, translation, reference):
+        print("Scripture Not Real")
+        return
+    else:
+        bookId = GetBookId(data, scriptureItems, translation)
+
+    #2. insert into url
+    apiData = CreateAPIVerse(translation, bookId, scriptureItems)
+
+    #3. Grab the text from the url and clean it of html poison
+    verse = RemoveHtmlTags(apiData['text'])
+
+    #4. Create Scripture object and try to insert to JSON file
+    newScripture = Scripture(reference, scriptureItems[0], scriptureItems[1], scriptureItems[2], verse, translation)
+    return newScripture
 
 def DeleteLoop():
     """This loop will allow the user to delete whatever scripture they want from their database.
