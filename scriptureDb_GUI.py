@@ -37,19 +37,31 @@ def showMainMenu():
     mainFrame.pack(fill='both', expand=True)
     
 def ShowScripture():
-    """_summary_
+    """Takes information from the userScriptureRef and userTranslation
+    to find the scripture they are looking for from the API. Once we gather
+    the information, we display it on a new text box and repacked some items
+    in the screen
     """
+    #unpack the back button to make room for new widgets
+    showScripture.pack_forget()
+    submitButton.pack_forget()
+    backButton_AddScriptureFrame.pack_forget()
+    #get information and find scripture with it
     scriptureRef = userScriptureRef.get()
     translation = userTranslation.get()
     scripture = sdb.FindScripture(scriptureRef, translation)
+    #assign scripture to global variable - it will be used in different functions
     global currentScripture
     currentScripture = scripture
+    #configure the showScripture textbox - clear any text in it and add new scripture text
     showScripture.config(state=tk.NORMAL)
     showScripture.delete(1.0, tk.END) #clear the box
     showScripture.insert(tk.END, scripture) #the scripture object needs to go here so we can save object, not just text
     showScripture.config(state=tk.DISABLED)
+    #pack everything - including backButton
     showScripture.pack(pady=20)
     submitButton.pack(pady=10)
+    backButton_AddScriptureFrame.pack(pady=10)
     
     
     
@@ -115,7 +127,7 @@ userTranslation.pack(pady=5)
 currentScripture = None #changed locally in ShowScripture and SubmitScripture
 showButton = tk.Button(addScriptureFrame, text="Show Scripture", command=ShowScripture)
 showButton.pack(pady=20)
-#confirmation of some sort - show in text box with new Add button beneath it
+#Submit Panel - only shows when the showButton has been clicked
 showScripture = tk.Text(addScriptureFrame, width=200, height=3)
 submitButton = tk.Button(addScriptureFrame, text="Add Scripture", command=SubmitScripture)
 
