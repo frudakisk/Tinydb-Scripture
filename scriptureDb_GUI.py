@@ -77,7 +77,24 @@ def showQuizFrame():
     verseBox_quizScriptureFrame.config(text=verseString)
     quizCurrentIndex += 1
 
-    
+def QuitQuizFrame():
+    """Need to reset all objects in this frame 
+    """
+    #forget all elements in frame
+    global quizCurrentIndex
+    global quizList
+    quizCurrentIndex = 0
+    quizList.clear()
+    quizPercentageList.clear()
+    verseBox_quizScriptureFrame.config(text='')
+    userInput_quizScriptureFrame.delete(0, tk.END)
+    correctnessLabel_quizScriptureFrame.config(text='')
+    finalScoreLabel_quizScriptureFrame.config(text='')
+    #set buttons to normal default
+    nextButton_quizScriptureFrame.config(state=tk.NORMAL)
+    submitQuizButton_quizScriptureFrame.config(state=tk.DISABLED)
+
+    showMainMenu()
 
 def NextQuizQuestion():
     """When the user clicks the next button in the quiz frame,
@@ -92,21 +109,39 @@ def NextQuizQuestion():
         #collect answer first
         userAnswer = userInput_quizScriptureFrame.get()
         versePercentage = sdb.StringPercentageMatch(userAnswer, quizList[quizCurrentIndex]['text'])
+        quizPercentageList.append(versePercentage) #add percentage to list
         correctnessLabel_quizScriptureFrame.config(text=f"You were {sdb.FormatFloatToPercentage(versePercentage)} correct!")
         userInput_quizScriptureFrame.delete(0, tk.END) #clear the user input box
         #add new verse
         verseString = quizList[quizCurrentIndex]['reference']
         verseBox_quizScriptureFrame.config(text=verseString)
-        quizCurrentIndex += 1
         print(quizCurrentIndex)
     
-    if quizCurrentIndex == len(quizList):
+    if quizCurrentIndex >= len(quizList):
+        userInput_quizScriptureFrame.delete(0, tk.END) #clear the user input box
+        #promt to hit the submit button after clicking next after 10th question
+        verseBox_quizScriptureFrame.config(text="Click SUBMIT to see quiz results")
         nextButton_quizScriptureFrame.config(state=tk.DISABLED)
+        submitQuizButton_quizScriptureFrame.config(state=tk.NORMAL)
+
+    quizCurrentIndex += 1
+
+def CalculateScore():
+    """Takes all the percentages from the quiz and makes an average and 
+    displays it on the screen
+    """
+    grade = sum(quizPercentageList) / len(quizPercentageList)
+    finalScoreLabel_quizScriptureFrame.config(text=f"Final Score: {sdb.FormatFloatToPercentage(grade)}")
+    quizPercentageList.clear()
+    #make submit button disabled again
+    submitQuizButton_quizScriptureFrame.config(state=tk.DISABLED)
+
     
 def SubmitScripture():
     global currentScripture
     sdb.InsertScriptureGUI(currentScripture)
     currentScripture = None
+
     
 
 
@@ -178,6 +213,7 @@ backButton_AddScriptureFrame.pack(pady=10)
 #create the quiz frame
 quizCurrentIndex = 0
 quizList = None
+quizPercentageList = []
 quizScriptureFrame = tk.Frame(root)
 frames.append(quizScriptureFrame)
 #create the things that will live in this frame
@@ -194,11 +230,15 @@ correctnessLabel_quizScriptureFrame.pack(pady=5)
 nextButton_quizScriptureFrame = tk.Button(quizScriptureFrame, text="Next Verse", command=NextQuizQuestion)
 nextButton_quizScriptureFrame.pack(pady=5)
 #submit button
-submitQuizButton_quizScriptureFrame = tk.Button(quizScriptureFrame, text="Submit")
+submitQuizButton_quizScriptureFrame = tk.Button(quizScriptureFrame, text="Submit", command=CalculateScore)
+submitQuizButton_quizScriptureFrame.config(state=tk.DISABLED)
 submitQuizButton_quizScriptureFrame.pack(pady=5)
 #quit quiz button (like a back button)
-quitButton_quizScriptureFrame = tk.Button(quizScriptureFrame, text="Quit", command=showMainMenu)
+quitButton_quizScriptureFrame = tk.Button(quizScriptureFrame, text="Quit", command=QuitQuizFrame)
 quitButton_quizScriptureFrame.pack(pady=20)
+#final score label
+finalScoreLabel_quizScriptureFrame = tk.Label(quizScriptureFrame)
+finalScoreLabel_quizScriptureFrame.pack(pady=5)
 
 
 
