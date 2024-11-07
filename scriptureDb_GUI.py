@@ -66,14 +66,13 @@ def ShowScripture():
 def showQuizFrame():
     """Show the quiz frame in the GUI and generates quiz questions
     """
-    global quizList
     global quizCurrentIndex
+    global quizList
     hideAllFrames()
     quizScriptureFrame.pack(fill='both', expand=True)
     quizList = sdb.GetScriptureForQuiz()
-    print(len(quizList))
     #show the first verse
-    verseString = quizList[quizCurrentIndex]['reference']
+    verseString = quizList[quizCurrentIndex]['reference'] + " | " + quizList[quizCurrentIndex]['translation']
     verseBox_quizScriptureFrame.config(text=verseString)
     quizCurrentIndex += 1
 
@@ -93,16 +92,15 @@ def QuitQuizFrame():
     #set buttons to normal default
     nextButton_quizScriptureFrame.config(state=tk.NORMAL)
     submitQuizButton_quizScriptureFrame.config(state=tk.DISABLED)
-
     showMainMenu()
 
 def NextQuizQuestion():
-    """When the user clicks the next button in the quiz frame,
-    we should calculate the percentage of how correct they were
-    and at the same time show the next question
-
-    So when i click this button, i need to grab the text from the entry box
-
+    """
+    When the user clicks the next button within the quiz frame,
+    we calculate how accurate their guess as to what the scripture
+    is and present it in a label on the screen. We also show the next
+    verse reference and clear the entry box where the user inputs their
+    answer.
     """
     global quizCurrentIndex
     if quizCurrentIndex < len(quizList):
@@ -113,9 +111,8 @@ def NextQuizQuestion():
         correctnessLabel_quizScriptureFrame.config(text=f"You were {sdb.FormatFloatToPercentage(versePercentage)} correct!")
         userInput_quizScriptureFrame.delete(0, tk.END) #clear the user input box
         #add new verse
-        verseString = quizList[quizCurrentIndex]['reference']
+        verseString = quizList[quizCurrentIndex]['reference'] + " | " + quizList[quizCurrentIndex]['translation']
         verseBox_quizScriptureFrame.config(text=verseString)
-        print(quizCurrentIndex)
     
     if quizCurrentIndex >= len(quizList):
         userInput_quizScriptureFrame.delete(0, tk.END) #clear the user input box
@@ -128,8 +125,9 @@ def NextQuizQuestion():
 
 def CalculateScore():
     """Takes all the percentages from the quiz and makes an average and 
-    displays it on the screen
+    displays it on the screen. We also clear the list just to be safe
     """
+    global quizPercentageList
     grade = sum(quizPercentageList) / len(quizPercentageList)
     finalScoreLabel_quizScriptureFrame.config(text=f"Final Score: {sdb.FormatFloatToPercentage(grade)}")
     quizPercentageList.clear()
@@ -212,7 +210,7 @@ backButton_AddScriptureFrame.pack(pady=10)
 #---------------------------------------------------------------------------------------------
 #create the quiz frame
 quizCurrentIndex = 0
-quizList = None
+quizList = []
 quizPercentageList = []
 quizScriptureFrame = tk.Frame(root)
 frames.append(quizScriptureFrame)
@@ -221,7 +219,7 @@ frames.append(quizScriptureFrame)
 verseBox_quizScriptureFrame = tk.Label(quizScriptureFrame)
 verseBox_quizScriptureFrame.pack(pady=5)
 #need a text box for the user to insert their answer
-userInput_quizScriptureFrame = tk.Entry(quizScriptureFrame)
+userInput_quizScriptureFrame = tk.Entry(quizScriptureFrame, width=50)
 userInput_quizScriptureFrame.pack(pady=5)
 #How correct they were
 correctnessLabel_quizScriptureFrame = tk.Label(quizScriptureFrame)
