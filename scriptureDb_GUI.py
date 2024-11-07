@@ -63,7 +63,45 @@ def ShowScripture():
     submitButton.pack(pady=10)
     backButton_AddScriptureFrame.pack(pady=10)
     
+def showQuizFrame():
+    """Show the quiz frame in the GUI and generates quiz questions
+    """
+    global quizList
+    global quizCurrentIndex
+    hideAllFrames()
+    quizScriptureFrame.pack(fill='both', expand=True)
+    quizList = sdb.GetScriptureForQuiz()
+    print(len(quizList))
+    #show the first verse
+    verseString = quizList[quizCurrentIndex]['reference']
+    verseBox_quizScriptureFrame.config(text=verseString)
+    quizCurrentIndex += 1
+
     
+
+def NextQuizQuestion():
+    """When the user clicks the next button in the quiz frame,
+    we should calculate the percentage of how correct they were
+    and at the same time show the next question
+
+    So when i click this button, i need to grab the text from the entry box
+
+    """
+    global quizCurrentIndex
+    if quizCurrentIndex < len(quizList):
+        #collect answer first
+        userAnswer = userInput_quizScriptureFrame.get()
+        versePercentage = sdb.StringPercentageMatch(userAnswer, quizList[quizCurrentIndex]['text'])
+        correctnessLabel_quizScriptureFrame.config(text=f"You were {sdb.FormatFloatToPercentage(versePercentage)} correct!")
+        userInput_quizScriptureFrame.delete(0, tk.END) #clear the user input box
+        #add new verse
+        verseString = quizList[quizCurrentIndex]['reference']
+        verseBox_quizScriptureFrame.config(text=verseString)
+        quizCurrentIndex += 1
+        print(quizCurrentIndex)
+    
+    if quizCurrentIndex == len(quizList):
+        nextButton_quizScriptureFrame.config(state=tk.DISABLED)
     
 def SubmitScripture():
     global currentScripture
@@ -85,7 +123,7 @@ frames.append(mainFrame)
 
 listButton = tk.Button(mainFrame, text="List Scripture", command=showScriptureList)
 addButton = tk.Button(mainFrame, text="Add Scripture", command=showAddScripture)
-quizButton = tk.Button(mainFrame, text="Quiz Scripture")
+quizButton = tk.Button(mainFrame, text="Quiz Scripture", command=showQuizFrame)
 
 #pack the buttons
 listButton.pack()
@@ -100,7 +138,7 @@ mainFrame.pack(fill='both', expand=True)
 scriptureFrame = tk.Frame(root)
 frames.append(scriptureFrame)
 #create the things that will live in this frame
-scriptureTextBox = tk.Text(scriptureFrame, width=200, height=50)
+scriptureTextBox = tk.Text(scriptureFrame, width=200, height=30)
 scriptureTextBox.pack(pady=20)
 
 #back button to return to main menu
@@ -137,6 +175,33 @@ backButton_AddScriptureFrame = tk.Button(addScriptureFrame, text="Back", command
 backButton_AddScriptureFrame.pack(pady=10)
 
 #---------------------------------------------------------------------------------------------
+#create the quiz frame
+quizCurrentIndex = 0
+quizList = None
+quizScriptureFrame = tk.Frame(root)
+frames.append(quizScriptureFrame)
+#create the things that will live in this frame
+#need a text box to show the verse we want the user to write - noneditable
+verseBox_quizScriptureFrame = tk.Label(quizScriptureFrame)
+verseBox_quizScriptureFrame.pack(pady=5)
+#need a text box for the user to insert their answer
+userInput_quizScriptureFrame = tk.Entry(quizScriptureFrame)
+userInput_quizScriptureFrame.pack(pady=5)
+#How correct they were
+correctnessLabel_quizScriptureFrame = tk.Label(quizScriptureFrame)
+correctnessLabel_quizScriptureFrame.pack(pady=5)
+#Next Button
+nextButton_quizScriptureFrame = tk.Button(quizScriptureFrame, text="Next Verse", command=NextQuizQuestion)
+nextButton_quizScriptureFrame.pack(pady=5)
+#submit button
+submitQuizButton_quizScriptureFrame = tk.Button(quizScriptureFrame, text="Submit")
+submitQuizButton_quizScriptureFrame.pack(pady=5)
+#quit quiz button (like a back button)
+quitButton_quizScriptureFrame = tk.Button(quizScriptureFrame, text="Quit", command=showMainMenu)
+quitButton_quizScriptureFrame.pack(pady=20)
+
+
+
 
 #start the Tkinter event loop
 root.mainloop()

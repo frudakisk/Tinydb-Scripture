@@ -558,12 +558,12 @@ def GetScriptureForQuiz() -> list[dict]:
         print(f"we have more than 10 verses, creating random quiz list")
         #start selecting scripture - need a set
         quizNum = 10
-        for i in range(quizNum):
+        i = 0
+        while i < quizNum:
             randInt = random.randint(0, maxScriptureNum-1)
             if randInt not in intSet:
                 intSet.add(randInt)
-            else:
-                i -= 1 #try loop again till we get a new number
+                i += 1 #increment only when success
 
         #now we have indexes of scripture, let's add those JSON dicts into a list and return it
         quizList = []
